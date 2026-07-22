@@ -158,7 +158,8 @@
       pointer-events: auto;
       user-select: none;
       -webkit-user-select: none;
-      touch-action: manipulation;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
       filter: drop-shadow(0 6px 10px rgba(230, 90, 100, 0.4));
       will-change: transform;
       transition: transform 0.15s ease;
@@ -179,6 +180,7 @@
       bottom: -14px;
       background: transparent;
       pointer-events: auto;
+      touch-action: none;
     }
 
     /* modal overlay for romantic message */
@@ -496,6 +498,24 @@
         return Math.random() * (max - min) + min;
       }
 
+      // ---------- Shuffled phrase queue (no repeats until the full set is used) ----------
+      function shuffleArray(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      let phraseQueue = [];
+      function getNextPhrase() {
+        if (phraseQueue.length === 0) {
+          phraseQueue = shuffleArray(missPhrases);
+        }
+        return phraseQueue.pop();
+      }
+
       function buildHearts() {
         if (heartsBuilt) return;
         heartsBuilt = true;
@@ -536,8 +556,7 @@
             if (now - lastTriggered < 400) return; // ignore duplicate/synthetic follow-up events
             lastTriggered = now;
             if (evt && evt.cancelable) evt.preventDefault();
-            const phrase = missPhrases[Math.floor(Math.random() * missPhrases.length)];
-            showModal(phrase);
+            showModal(getNextPhrase());
           };
 
           el.addEventListener('pointerdown', triggerHeart, { passive: false });
