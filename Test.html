@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>رسالة حب • مشتاقلك</title>
+  <!-- Google Fonts: Cairo for soft, readable Arabic typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(145deg, #fff5f5 0%, #ffe9ec 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* flying hearts canvas - subtle background animation */
+    #heartsCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 700px;
+      border-radius: 3.5rem;
+      padding: 2.5rem 2rem;
+      transition: all 0.4s ease;
+      text-align: center;
+    }
+
+    /* pages transition */
+    .page {
+      display: none;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s ease;
+    }
+
+    .page.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* typography */
+    .message-text {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #b3444b;
+      line-height: 1.8;
+      margin-bottom: 2.2rem;
+      text-shadow: 2px 2px 10px rgba(255, 200, 200, 0.7);
+      word-break: break-word;
+      letter-spacing: -0.3px;
+    }
+
+    .page2 .message-text {
+      font-size: 2rem;
+      color: #b14c4c;
+    }
+
+    /* buttons */
+    .romantic-btn {
+      background: #ffb6c1;
+      border: none;
+      background: linear-gradient(135deg, #ffb7b2 0%, #ff9aa2 100%);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      padding: 0.9rem 2.8rem;
+      border-radius: 60px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(255, 110, 120, 0.4);
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      letter-spacing: 1px;
+      animation: gentlePulse 2.4s infinite;
+      margin-top: 0.5rem;
+    }
+
+    .romantic-btn:hover {
+      background: #ff8b94;
+      background: linear-gradient(135deg, #ff9eb5 0%, #ff7b87 100%);
+      box-shadow: 0 18px 25px rgba(240, 100, 110, 0.5);
+      transform: scale(1.04);
+      border-color: white;
+    }
+
+    .heart-icon {
+      font-size: 1.7rem;
+      margin: 0 0.2rem;
+    }
+
+    @keyframes gentlePulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 130, 140, 0.6); }
+      50% { box-shadow: 0 0 0 15px rgba(255, 130, 140, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 130, 140, 0); }
+    }
+
+    /* flying interactive hearts for page 3 */
+    .flying-hearts-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 80;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease;
+    }
+
+    .flying-hearts-layer.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .flying-heart {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.9rem;
+      line-height: 1;
+      cursor: pointer;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      filter: drop-shadow(0 6px 10px rgba(230, 90, 100, 0.4));
+      will-change: transform;
+      transition: transform 0.15s ease;
+    }
+
+    .flying-heart:active {
+      transform: scale(1.35) !important;
+    }
+
+    /* Enlarge the tappable/clickable area beyond the visible heart emoji,
+       without affecting the visual size used by the animation math */
+    .flying-heart::before {
+      content: '';
+      position: absolute;
+      top: -14px;
+      left: -14px;
+      right: -14px;
+      bottom: -14px;
+      background: transparent;
+      pointer-events: auto;
+    }
+
+    /* modal overlay for romantic message */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 235, 235, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease, visibility 0.3s;
+    }
+
+    .modal-overlay.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-card {
+      background: #fff9f9;
+      max-width: 380px;
+      width: 85%;
+      background: linear-gradient(135deg, #fff0f3, #ffe0e5);
+      border-radius: 3rem;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 35px 50px rgba(200, 80, 90, 0.4);
+      border: 2px solid white;
+      position: relative;
+      animation: modalPop 0.4s ease;
+    }
+
+    @keyframes modalPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-message {
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: #c94b4b;
+      margin: 1rem 0 1.8rem;
+      line-height: 1.6;
+    }
+
+    .close-modal-btn {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #d97a7a;
+      transition: 0.2s;
+      margin-top: 0.5rem;
+      background: white;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.08);
+    }
+
+    .close-modal-btn:hover {
+      color: #b13030;
+      transform: rotate(90deg);
+    }
+
+    .page-indicator {
+      color: #d47c7c;
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 500px) {
+      .message-text {
+        font-size: 1.5rem;
+      }
+      .flying-heart {
+        width: 42px;
+        height: 42px;
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Flying hearts canvas -->
+  <canvas id="heartsCanvas"></canvas>
+
+  <div class="container">
+    <!-- PAGE 1 : Landing -->
+    <div id="page1" class="page active">
+      <div class="message-text">
+        نمتي بدون ما تحكيلي الله يسامحك وانا مشتاقلك وما عرفت انام فعملت ويبسايت
+      </div>
+      <button class="romantic-btn" id="goToPage2Btn">
+        <span>nexttt</span>
+        <span class="heart-icon">❤️</span>
+      </button>
+      <div class="page-indicator">١/٣</div>
+    </div>
+
+    <!-- PAGE 2 : Exam Wishes -->
+    <div id="page2" class="page page2">
+      <div class="message-text">
+        واليوم امتحان منى الاول فالله يوفقها يا رب ويوفق اخوي
+      </div>
+      <button class="romantic-btn" id="goToPage3Btn">
+        <span>Nextttt</span>
+        <span class="heart-icon">🌸</span>
+      </button>
+      <div class="page-indicator">٢/٣</div>
+    </div>
+
+    <!-- PAGE 3 : I Miss You Circles -->
+    <div id="page3" class="page">
+      <div class="message-text" style="font-size: 1.7rem; margin-bottom: 1.2rem;">
+             كبسي على القلوب كبسي    
+      </div>
+      <div style="margin-top: 1rem; color: #c26060; font-weight: 600;">كل قلب طاير يحمل كلم الك يا عمري</div>
+      <div class="page-indicator">٣/٣</div>
+    </div>
+  </div>
+
+  <!-- Modal for displaying miss message -->
+  <div class="modal-overlay" id="missModal">
+    <div class="modal-card">
+      <div class="modal-message" id="modalMessageText">مشتاقلك كثير</div>
+      <button class="close-modal-btn" id="closeModalBtn">✕</button>
+    </div>
+  </div>
+
+  <!-- Flying interactive hearts layer for Page 3 (fixed to viewport so hearts roam the whole screen) -->
+  <div class="flying-hearts-layer" id="flyingHeartsLayer"></div>
+
+  <script>
+    (function() {
+      // ---------- FLYING HEARTS CANVAS ----------
+      const canvas = document.getElementById('heartsCanvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let heartsArray = [];
+
+      function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      class Heart {
+        constructor() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * -height * 0.5 - 20;
+          this.size = Math.random() * 22 + 10;
+          this.speedY = Math.random() * 1.8 + 0.8;
+          this.speedX = (Math.random() - 0.5) * 0.7;
+          this.opacity = Math.random() * 0.5 + 0.3;
+          this.rotation = Math.random() * Math.PI * 2;
+          this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+          this.color = `rgba(255, ${Math.floor(Math.random()*80+140)}, ${Math.floor(Math.random()*80+150)}, ${this.opacity})`;
+        }
+
+        update() {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          this.rotation += this.rotationSpeed;
+          if (this.y - this.size > height) {
+            this.y = -this.size - 10;
+            this.x = Math.random() * width;
+          }
+          if (this.x > width + this.size) this.x = -this.size;
+          if (this.x < -this.size) this.x = width + this.size;
+        }
+
+        draw(ctx) {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          const sz = this.size;
+          ctx.moveTo(0, sz * 0.25);
+          ctx.bezierCurveTo(sz * 0.5, -sz * 0.2, sz, sz * 0.6, 0, sz);
+          ctx.bezierCurveTo(-sz, sz * 0.6, -sz * 0.5, -sz * 0.2, 0, sz * 0.25);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function initHearts(count = 50) {
+        heartsArray = [];
+        for (let i = 0; i < count; i++) {
+          heartsArray.push(new Heart());
+        }
+      }
+
+      function animateHearts() {
+        ctx.clearRect(0, 0, width, height);
+        heartsArray.forEach(heart => {
+          heart.update();
+          heart.draw(ctx);
+        });
+        requestAnimationFrame(animateHearts);
+      }
+
+      initHearts(55);
+      animateHearts();
+
+      // ---------- PAGE NAVIGATION ----------
+      const page1 = document.getElementById('page1');
+      const page2 = document.getElementById('page2');
+      const page3 = document.getElementById('page3');
+      const goToPage2Btn = document.getElementById('goToPage2Btn');
+      const goToPage3Btn = document.getElementById('goToPage3Btn');
+
+      function showPage(pageElement) {
+        [page1, page2, page3].forEach(p => p.classList.remove('active'));
+        pageElement.classList.add('active');
+
+        if (pageElement === page3) {
+          startFlyingHearts();
+        } else {
+          stopFlyingHearts();
+        }
+      }
+
+      goToPage2Btn.addEventListener('click', () => {
+        showPage(page2);
+      });
+
+      goToPage3Btn.addEventListener('click', () => {
+        showPage(page3);
+      });
+
+      // ---------- PAGE 3: 30 FLYING, CLICKABLE HEARTS ----------
+      const modal = document.getElementById('missModal');
+      const modalMessageText = document.getElementById('modalMessageText');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const flyingHeartsLayer = document.getElementById('flyingHeartsLayer');
+
+      // Unique romantic "I miss you" Arabic phrases (a wide pool for variety)
+      const missPhrases = [
+  "مشتاقلك كثييير",
+  "بعشقك يا روح مراد",
+  "روحي كلها إلك",
+  "بحبك يا أحلى ملاك بالكون",
+  "الوقت بدونك مزعج",
+  "قلبي كل شوي بنادي اسمك",
+  "بحبك أكثر من أي حدا بالدنيا",
+  "إنتِ أحلى شي صار بحياتي",
+  "يا عمري إنتِ",
+  "إنتِ كل دنيتي",
+  "قلبي إلك وبس",
+  "ما بحب حدا زي ما بحبك",
+  "إنتِ أجمل وحدة شافتها عيوني",
+  "وجودك بحياتي أحلى نعمة",
+  "بحب كل تفصيل صغير فيكِ",
+  "ضحكتك بتردلي روحي",
+  "صوتك أحلى صوت بالدنيا",
+  "إنتِ أمان قلبي",
+  "يا أحلى وأحن إنسانة",
+  "كل يوم بحبك أكثر",
+  "إنتِ حبيبتي وصاحبتي وكل حياتي",
+  "ما بدي من الدنيا غيرك",
+  "الله لا يحرمني منك",
+  "إنتِ أجمل قدر بحياتي",
+  "عيونك أحلى وطن لقلبي",
+  "قلبي ما اختار غيرك",
+  "بحبك بطريقة ما بقدر أوصفها",
+  "إنتِ فرحتي الحلوة",
+  "وجودك بخليني أسعد إنسان",
+  "يا أجمل حب دخل قلبي",
+  "إنتِ نصيبي الحلو",
+  "معك كل شي بصير أحلى",
+  "بحب لما أشوفك مبسوطة",
+  "إنتِ السبب ورا أحلى ضحكة عندي",
+  "إنتِ أول وآخر حب بقلبي",
+  "لو يرجع فيني الزمن بختارك كل مرة",
+  "كل الحب اللي بقلبي إلك",
+  "إنتِ أحلى من كل الكلام الحلو",
+  "بحبك قد الدنيا وأكثثثر",
+  "ما بتخيل حياتي من دونك",
+  "إنتِ بيتي وراحتي",
+  "يا أحلى بنت بالكون كله",
+  "إنتِ وردة قلبي الحلوة",
+  "أنا كثير محظوظ إنك بحياتي",
+  "قلبي بيرتاح بس يحكي معك",
+  "نفسي أضل جنبك طول العمر",
+  "بحبك بكل حالاتك وتفاصيلك",
+  "إنتِ أجمل حلم صار حقيقة",
+  "مشتاق أشوف عيونك الحلوة",
+  "مهما حكيت بحبك ما بوفيكي حقك"
+];
+      const emojiChoices = ['❤️', '💕', '💖', '💗', '💓'];
+
+      const NUM_HEARTS = 50;
+      let hearts = [];
+      let animationId = null;
+      let heartsBuilt = false;
+
+      function randomBetween(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function buildHearts() {
+        if (heartsBuilt) return;
+        heartsBuilt = true;
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        for (let i = 0; i < NUM_HEARTS; i++) {
+          const size = randomBetween(38, 58);
+          const el = document.createElement('div');
+          el.className = 'flying-heart';
+          el.style.width = size + 'px';
+          el.style.height = size + 'px';
+          el.style.fontSize = (size * 0.62) + 'px';
+          el.textContent = emojiChoices[Math.floor(Math.random() * emojiChoices.length)];
+
+          const heart = {
+            el,
+            size,
+            x: randomBetween(0, Math.max(vw - size, 0)),
+            y: randomBetween(0, Math.max(vh - size, 0)),
+            vx: randomBetween(-0.9, 0.9) || 0.4,
+            vy: randomBetween(-0.9, 0.9) || 0.4,
+            rotation: randomBetween(0, 360),
+            rotationSpeed: randomBetween(-0.6, 0.6)
+          };
+
+          // Guard against near-zero velocity so hearts don't go stationary
+          if (Math.abs(heart.vx) < 0.3) heart.vx = heart.vx < 0 ? -0.4 : 0.4;
+          if (Math.abs(heart.vy) < 0.3) heart.vy = heart.vy < 0 ? -0.4 : 0.4;
+
+          // Fire on the first interaction event only (pointerdown/touchstart fire
+          // before click, so we guard with a timestamp to avoid double-triggering
+          // the modal when a click follows a touch/pointer event).
+          let lastTriggered = 0;
+          const triggerHeart = (evt) => {
+            const now = Date.now();
+            if (now - lastTriggered < 400) return; // ignore duplicate/synthetic follow-up events
+            lastTriggered = now;
+            if (evt && evt.cancelable) evt.preventDefault();
+            const phrase = missPhrases[Math.floor(Math.random() * missPhrases.length)];
+            showModal(phrase);
+          };
+
+          el.addEventListener('pointerdown', triggerHeart, { passive: false });
+          el.addEventListener('touchstart', triggerHeart, { passive: false });
+          el.addEventListener('click', triggerHeart);
+
+          flyingHeartsLayer.appendChild(el);
+          hearts.push(heart);
+        }
+      }
+
+      function updateHearts() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        hearts.forEach(h => {
+          h.x += h.vx;
+          h.y += h.vy;
+          h.rotation += h.rotationSpeed;
+
+          // Bounce off the screen edges, keeping hearts fully inside view
+          if (h.x <= 0) {
+            h.x = 0;
+            h.vx = Math.abs(h.vx);
+          } else if (h.x >= vw - h.size) {
+            h.x = vw - h.size;
+            h.vx = -Math.abs(h.vx);
+          }
+
+          if (h.y <= 0) {
+            h.y = 0;
+            h.vy = Math.abs(h.vy);
+          } else if (h.y >= vh - h.size) {
+            h.y = vh - h.size;
+            h.vy = -Math.abs(h.vy);
+          }
+
+          h.el.style.transform = `translate(${h.x}px, ${h.y}px) rotate(${h.rotation}deg)`;
+        });
+
+        animationId = requestAnimationFrame(updateHearts);
+      }
+
+      function startFlyingHearts() {
+        buildHearts();
+        flyingHeartsLayer.classList.add('active');
+        if (!animationId) {
+          animationId = requestAnimationFrame(updateHearts);
+        }
+      }
+
+      function stopFlyingHearts() {
+        flyingHeartsLayer.classList.remove('active');
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+      }
+
+      // Keep hearts within bounds if the window is resized/rotated
+      window.addEventListener('resize', () => {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        hearts.forEach(h => {
+          h.x = Math.min(h.x, Math.max(vw - h.size, 0));
+          h.y = Math.min(h.y, Math.max(vh - h.size, 0));
+        });
+      });
+
+      function showModal(text) {
+        modalMessageText.textContent = text;
+        modal.classList.add('show');
+      }
+
+      function hideModal() {
+        modal.classList.remove('show');
+      }
+
+      closeModalBtn.addEventListener('click', hideModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+      });
+
+      // Close modal with Escape key
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+          hideModal();
+        }
+      });
+
+      // For better mobile experience
+      console.log('مشتاقلك');
+    })();
+  </script>
+</body>
+</html>
